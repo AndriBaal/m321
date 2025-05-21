@@ -1,3 +1,5 @@
+use std::string;
+
 use actix_web::{
     HttpResponse, HttpResponseBuilder,
     http::{StatusCode, header::HeaderValue},
@@ -33,6 +35,17 @@ pub struct Args {
     mongo_host: String,
     #[arg(long, env, default_value = "27017")]
     mongo_port: u16,
+
+    // Keycloak
+    #[arg(long, env, required = true)]
+    pub keycloak_port: u16,
+    #[arg(long, env, required = true)]
+    pub keycloak_realm: String,
+    #[arg(long, env, required = true)]
+    pub keycloak_client_id: String,
+    #[arg(long, env, required = true)]
+    pub keycloak_secret_file: String,
+
 
     // App
     #[arg(long, env, default_value = "false")]
@@ -83,6 +96,11 @@ impl AppState {
             "mongodb://{}:{}@{}:{}",
             mongo_username, mongo_password, mongo_host, mongo_port
         );
+
+        if std::fs::exists(&args.keycloak_secret_file).is_err() {
+            unreachable!("No keycloak secret provided!")
+        };
+
         uri.retain(|c| !c.is_whitespace());
 
         // Create a MongoDB client

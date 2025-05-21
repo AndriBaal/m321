@@ -4,8 +4,8 @@ services:
     restart: always
     container_name: mongodb
     environment:
-      MONGO_INITDB_DATABASE: m324_app
-      MONGO_INITDB_ROOT_USERNAME: m324_app
+      MONGO_INITDB_DATABASE: m321_app
+      MONGO_INITDB_ROOT_USERNAME: m321_app
       MONGO_INITDB_ROOT_PASSWORD_FILE: /run/secrets/mongo_pass
     ports:
       - "27017:27017"
@@ -14,9 +14,26 @@ services:
       - mongo_volume:/data/configdb
     secrets:
       - mongo_pass
-  m324_app:
-    container_name: m324_app
-    image: m324-app:latest
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.2.4
+    container_name: keycloak
+    entrypoint: ["/opt/keycloak/import_realm.sh"]
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_DB: dev-mem
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./keycloak/realm:/opt/keycloak/data/import
+      - ./scripts/import_realm.sh:/opt/keycloak/import_realm.sh
+    secrets:
+      - keycloak_secret
+
+  m321_app:
+    container_name: m321_app
+    image: m321-app:latest
     build: .
     restart: always
     environment:
@@ -24,21 +41,31 @@ services:
       RUST_LOG: info
       MONGO_HOST: mongodb
       MONGO_PORT: 27017
-      MONGO_DATABASE: m324_app
-      MONGO_USERNAME: m324_app
+      MONGO_DATABASE: m321_app
+      MONGO_USERNAME: m321_app
       MONGO_PASSWORD_FILE: /run/secrets/mongo_pass
       SESSION_SECRET_FILE: /run/secrets/session_secret
+      KEYCLOAK_PORT: 8080
+      KEYCLOAK_REALM: m321
+      KEYCLOAK_CLIENT_ID: actix-app
+      KEYCLOAK_SECRET_FILE: /run/secrets/keycloak_secret
     ports:
       - "80:80"
     depends_on:
       - mongodb
+      - keycloak
     secrets:
       - mongo_pass
       - session_secret
+      - keycloak_secret
+
 volumes:
   mongo_volume:
+
 secrets:
   mongo_pass:
     file: ./secrets/mongo_pass.txt
   session_secret:
     file: ./secrets/session_secret.txt
+  keycloak_secret:
+    file: ./secrets/keycloak_secret.txt

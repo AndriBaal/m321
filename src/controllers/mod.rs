@@ -1,26 +1,32 @@
-use crate::app::{AppState, Args};
+use crate::app::{ AppState, Args };
 
 use actix_files::Files;
-use actix_session::{SessionMiddleware, config::PersistentSession};
+use actix_session::{ SessionMiddleware, config::PersistentSession };
 use actix_web::{
-    App, HttpServer,
-    cookie::{Key, time::Duration},
-    middleware::Logger,
+    body::BoxBody,
+    cookie::{ time::Duration, Key },
+    dev::ServiceRequest,
+    middleware::{ Logger, Next, NormalizePath, TrailingSlash },
     web,
+    App,
+    HttpServer,
 };
 
 pub mod auth;
 pub mod device;
 
 pub async fn setup_server(app: AppState) -> std::io::Result<()> {
-    let mongo_session_store: crate::models::session::SessionManager =
-        crate::models::session::connect(&app.db).await;
+    let mongo_session_store: crate::models::session::SessionManager = crate::models::session::connect(
+        &app.db
+    ).await;
     let session_secret = if let Some(session_secret) = app.args.session_secret.clone() {
         session_secret
     } else if let Some(password_file) = &app.args.session_secret_file {
         std::fs::read_to_string(password_file).unwrap()
     } else {
-        unreachable!("No session secret provided! (Clap ensures one of the arguments is always set)")
+        unreachable!(
+            "No session secret provided! (Clap ensures one of the arguments is always set)"
+        )
     };
     Args::validate_length(&session_secret).unwrap();
     let bytes = session_secret.as_bytes();
@@ -32,6 +38,7 @@ pub async fn setup_server(app: AppState) -> std::io::Result<()> {
         App::new()
             .app_data(app_data.clone())
             .wrap(Logger::default())
+            .wrap(NormalizePath::new(TrailingSlash::Always))
             .wrap(
                 SessionMiddleware::builder(mongo_session_store.clone(), secret_key.clone())
                     .cookie_http_only(true)
@@ -42,15 +49,14 @@ pub async fn setup_server(app: AppState) -> std::io::Result<()> {
                         PersistentSession::default()
                             .session_ttl(Duration::weeks(2))
                             .session_ttl_extension_policy(
-                                actix_session::config::TtlExtensionPolicy::OnEveryRequest,
-                            ),
+                                actix_session::config::TtlExtensionPolicy::OnEveryRequest
+                            )
                     )
-                    .build(),
+                    .build()
             )
             .service(Files::new("/static", "./static").show_files_listing())
             .service(device::index)
     })
-    .bind(("0.0.0.0", port))?
-    .run()
-    .await
+        .bind(("0.0.0.0", port))?
+        .run().await
 }
