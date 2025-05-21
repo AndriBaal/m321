@@ -1,0 +1,44 @@
+services:
+  mongodb:
+    image: mongo
+    restart: always
+    container_name: mongodb
+    environment:
+      MONGO_INITDB_DATABASE: m324_app
+      MONGO_INITDB_ROOT_USERNAME: m324_app
+      MONGO_INITDB_ROOT_PASSWORD_FILE: /run/secrets/mongo_pass
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_volume:/data/db
+      - mongo_volume:/data/configdb
+    secrets:
+      - mongo_pass
+  m324_app:
+    container_name: m324_app
+    image: m324-app:latest
+    build: .
+    restart: always
+    environment:
+      REBUILD_INDEXES: true
+      RUST_LOG: info
+      MONGO_HOST: mongodb
+      MONGO_PORT: 27017
+      MONGO_DATABASE: m324_app
+      MONGO_USERNAME: m324_app
+      MONGO_PASSWORD_FILE: /run/secrets/mongo_pass
+      SESSION_SECRET_FILE: /run/secrets/session_secret
+    ports:
+      - "80:80"
+    depends_on:
+      - mongodb
+    secrets:
+      - mongo_pass
+      - session_secret
+volumes:
+  mongo_volume:
+secrets:
+  mongo_pass:
+    file: ./secrets/mongo_pass.txt
+  session_secret:
+    file: ./secrets/session_secret.txt

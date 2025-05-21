@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="TODO App">
+    <meta name="author" content="Andri Baal">
+    <meta name="keywords" content="TODO App">
+    
+    <title>TODO App</title>
+    
+    <!-- Link to external CSS -->
+    <script src="/static/lib/bootstrap-5.3.3/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="/static/lib/bootstrap-5.3.3/css/bootstrap.min.css">
+
+	<link rel="stylesheet" href="/static/lib/fontawesome/css/font-awesome.css">
+
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <script src="/static/js/index.js"></script>
+
+    <!-- Favicon -->
+    <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
+</head>
+<body>
+    <div id="wrap" class="d-flex flex-column vh-100">
+		<!-- Header -->
+		<header class="d-flex justify-content-between py-2 bg-primary text-white position-fixed w-100 top-0 z-2">
+			<div></div>
+			<div>
+				<h2>
+					<a class="text-decoration-none text-reset" href="/">App</a>
+				</h2>
+			</div>
+			<div>
+				{% if ctx.user_id.is_some() %}
+					<a class="text-white" href="/logout">Logout</a>
+				{% else %}
+					<a class="text-white" href="/login">Login</a>
+				{% endif %}
+			</div>
+		</header>
+
+		<!-- Main Layout -->
+		<div class="d-flex flex-column flex-grow-1 pt-5">
+			<div class="d-flex flex-grow-1">
+				<!-- Content -->
+				<main class="container py-4 flex-grow-1">
+					<div class="row justify-content-center">
+						<div class="col-12 col-md-6">
+							{% block content %}{% endblock %}
+						</div>
+					</div>
+				</main>
+			</div>
+
+			<!-- Footer -->
+			<footer class="bg-secondary text-white py-2 text-center z-2">
+				<p class="mb-0">© 2025 Mario Soller & Andri Baal. All Rights Reserved.</p>
+			</footer>
+		</div>
+	</div>
+</body>
+</html>
