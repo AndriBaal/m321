@@ -12,24 +12,40 @@ Generell:
 
 ## General
 - Ziel
+- Insgesamt 6 Services 
 
 ## Arduino
+- DHT11 Temparatur sensor
+- ESP 8266
+- Schaltungzeigen
 
 ## Web APP
+- Rust
 - Actix
 
 ## MongoDB
+- Persistente Datenspeicherung
+- Speicherung von Daten
+- Auswerten von Durcchscnitt letzte 24 Stunden
 
 ## Mosquitto
 - Passwortschützt
+- Kommunikation zwischen Arduino und Web APP
 
 ## Nginx
 
+
 ## Keycloak
 
+
 ## Systemarchitektur
+- Grafik der Archtiektur
 
 ## Docker Setup
+- docker compose
+- secrets
 
 ## Ausblick
 - Server Konfiguration mit https
+- Service für Monitoring
+- Anschlissen mehrerer Arduinos
