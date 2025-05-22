@@ -6,6 +6,7 @@ RUN cargo install --path .
 
 # Stage 2: Run
 FROM debian:bookworm-slim
+RUN apt-get update && apt-get install -y openssl && apt clean
 RUN rm -rf /var/lib/apt/lists/*
 COPY --from=builder /usr/local/cargo/bin/m321_app /usr/local/bin/m321_app
 COPY --from=builder /usr/src/m321_app/static /static

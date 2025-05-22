@@ -23,8 +23,7 @@ use actix_web::{
 use bson::{doc, oid::ObjectId};
 use futures::future::LocalBoxFuture;
 use oauth2::{
-    AuthUrl, AuthorizationCode, Client, ClientId, ClientSecret, CsrfToken, RedirectUrl,
-    RevocationErrorResponseType, Scope, TokenUrl, basic::BasicClient,
+    basic::BasicClient, AuthUrl, AuthorizationCode, Client, ClientId, ClientSecret, CsrfToken, RedirectUrl, RevocationErrorResponseType, Scope, TokenResponse, TokenUrl
 };
 use oauth2::{
     EmptyExtraTokenFields, EndpointNotSet, EndpointSet, StandardErrorResponse,
@@ -34,11 +33,76 @@ use oauth2::{
 use serde::Deserialize;
 
 
-
 #[get("/login")]
-async fn login() -> impl Responder {
-    return HttpResponse::Ok().body("Hello world!");
+async fn login(
+    app: web::Data<AppState>,
+    session: Session,
+    req: HttpRequest,
+) -> impl Responder {
+    use serde_json::Value;
+
+    let query = web::Query::<std::collections::HashMap<String, String>>::from_query(req.query_string());
+    let code = match query {
+        Ok(q) => q.get("code").cloned(),
+        Err(_) => None,
+    };
+
+    if code.is_none() {
+        return HttpResponse::BadRequest().body("Missing code");
+    }
+
+    let code = code.unwrap();
+    let connection_info = req.connection_info().clone();
+    let client = oauth_client(&app.args, &connection_info);
+
+    let http_client = reqwest::Client::builder()
+        .redirect(reqwest::redirect::Policy::none())
+        .build().unwrap();
+
+    let token_result = client
+        .exchange_code(AuthorizationCode::new(code))
+        .request_async(&http_client)
+        .await;
+
+    let token = match token_result {
+        Ok(token) => token,
+        Err(err) => {
+            return HttpResponse::InternalServerError().body(format!("Token error: {:?}", err));
+        }
+    };
+
+    // 🧠 Fetch user info from Keycloak
+    let userinfo_endpoint = format!(
+        "http://localhost:{}/realms/{}/protocol/openid-connect/userinfo",
+        app.args.keycloak_port, app.args.keycloak_realm
+    );
+
+    let client = reqwest::Client::new();
+    let res = client
+        .get(&userinfo_endpoint)
+        .bearer_auth(token.access_token().secret())
+        .send()
+        .await;
+
+    // TODO: fails
+    let user_info: Value = match res {
+        Ok(response) => match response.json().await {
+            Ok(json) => json,
+            Err(err) => return HttpResponse::InternalServerError().body(format!("Parse error: {:?}", err)),
+        },
+        Err(err) => return HttpResponse::InternalServerError().body(format!("Request error: {:?}", err)),
+    };
+
+    // ✅ Extract "sub" (user ID)
+    if let Some(sub) = user_info.get("sub").and_then(|v| v.as_str()) {
+        session.insert("user_id", sub).unwrap();
+        return app.redirect("/");
+    } else {
+        return HttpResponse::InternalServerError().body("Failed to get user ID");
+    }
 }
+
+
 
 // #[get("/logincallback")]
 // async fn login_get_callback(
@@ -226,6 +290,8 @@ where
 
         // ✅ Session gültig → weiterleiten
         if let Ok(Some(_user_id)) = session.get::<ObjectId>("user_id") {
+
+            log::info!("Authenticated request from user_id: {}", _user_id);
             let fut = self.service.call(req);
             return Box::pin(async move {
                 let res = fut.await?;
