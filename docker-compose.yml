@@ -18,7 +18,7 @@ services:
   keycloak:
     image: quay.io/keycloak/keycloak:26.2.4
     container_name: keycloak
-    entrypoint: ["/opt/keycloak/import_realm.sh"]
+    command: start-dev --import-realm
     environment:
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
@@ -26,10 +26,10 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - ./keycloak/realm:/opt/keycloak/data/import
-      - ./scripts/import_realm.sh:/opt/keycloak/import_realm.sh
+      - ./keycloak:/opt/keycloak/data/import
     secrets:
-      - keycloak_secret
+      - keycloak_admin_password
+
   mosquitto:
     image: eclipse-mosquitto
     container_name: mosquitto
@@ -37,12 +37,13 @@ services:
     ports:
       - "1883:1883" # MQTT
     volumes:
-      - ./mosquitto/config:/mosquitto/config
-      - mosquitto_volume/data:/mosquitto/data
-  
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - mosquitto_volume:/mosquitto/data
+    secrets:
+      - mosquitto_user
+
   m321_app:
     container_name: m321_app
-    image: m321-app:latest
     build: ./app
     restart: always
     environment:
@@ -54,11 +55,13 @@ services:
       MONGO_USERNAME: m321_app
       MONGO_PASSWORD_FILE: /run/secrets/mongo_pass
       SESSION_SECRET_FILE: /run/secrets/session_secret
+      KEYCLOAK_SECRET_FILE: /run/secrets/session_secret
+      KEYCLOAK_HOST: keycloak
       KEYCLOAK_PORT: 8080
       KEYCLOAK_REALM: m321
       KEYCLOAK_CLIENT_ID: actix-app
     ports:
-      - "80:80"
+      - "80" # only visible to other containers (nginx)
     depends_on:
       - mongodb
       - keycloak
@@ -66,16 +69,19 @@ services:
     secrets:
       - mongo_pass
       - session_secret
+      - keycloak_secret
+
   nginx:
     image: nginx
     container_name: nginx
     restart: always
     ports:
-      - "8081:80"
+      - "80:80"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
       - m321_app
+
 volumes:
   mongo_volume:
   mosquitto_volume:
@@ -87,3 +93,7 @@ secrets:
     file: ./secrets/session_secret.txt
   keycloak_secret:
     file: ./secrets/keycloak_secret.txt
+  keycloak_admin_password:
+    file: ./secrets/keycloak_admin_password.txt
+  mosquitto_user:
+    file: ./secrets/mosquitto_user.txt

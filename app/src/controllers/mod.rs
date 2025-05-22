@@ -1,24 +1,20 @@
-use crate::app::{ AppState, Args };
+use crate::app::{AppState, Args};
 
 use actix_files::Files;
-use actix_session::{ SessionMiddleware, config::PersistentSession };
+use actix_session::{SessionMiddleware, config::PersistentSession};
 use actix_web::{
-    body::BoxBody,
-    cookie::{ time::Duration, Key },
-    dev::ServiceRequest,
-    middleware::{ Logger, Next, NormalizePath, TrailingSlash },
+    App, HttpServer,
+    cookie::{Key, time::Duration},
+    middleware::{Logger, NormalizePath, TrailingSlash},
     web,
-    App,
-    HttpServer,
 };
 
 pub mod auth;
 pub mod device;
 
 pub async fn setup_server(app: AppState) -> std::io::Result<()> {
-    let mongo_session_store: crate::models::session::SessionManager = crate::models::session::connect(
-        &app.db
-    ).await;
+    let mongo_session_store: crate::models::session::SessionManager =
+        crate::models::session::connect(&app.db).await;
     let session_secret = if let Some(session_secret) = app.args.session_secret.clone() {
         session_secret
     } else if let Some(password_file) = &app.args.session_secret_file {
@@ -49,15 +45,16 @@ pub async fn setup_server(app: AppState) -> std::io::Result<()> {
                         PersistentSession::default()
                             .session_ttl(Duration::weeks(2))
                             .session_ttl_extension_policy(
-                                actix_session::config::TtlExtensionPolicy::OnEveryRequest
-                            )
+                                actix_session::config::TtlExtensionPolicy::OnEveryRequest,
+                            ),
                     )
-                    .build()
+                    .build(),
             )
             .service(Files::new("/static", "./static").show_files_listing())
             .service(device::index)
-            .service(auth::index)
+            .service(auth::login)
     })
-        .bind(("0.0.0.0", port))?
-        .run().await
+    .bind(("0.0.0.0", port))?
+    .run()
+    .await
 }

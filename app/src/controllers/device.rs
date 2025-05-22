@@ -1,7 +1,7 @@
 use crate::{
     app::AppState,
     controllers::auth::AuthRequired,
-    models::{device::Device},
+    models::device::Device,
     views::{context::Context, device::DeviceView},
 };
 use actix_session::Session;
@@ -10,7 +10,6 @@ use actix_web::{
     web::{self, Data},
 };
 use bson::{doc, oid::ObjectId};
-
 
 #[get("/", wrap = "AuthRequired")]
 async fn index(app: Data<AppState>, session: Session) -> impl Responder {

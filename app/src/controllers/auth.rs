@@ -1,67 +1,74 @@
-use std::{ future::{ ready, Ready }, string };
-
-use crate::{ app::{ AppState, Args }, views::{ auth::{ Login, SignUp }, context::Context } };
-
-use actix_session::{ Session, SessionExt };
-use actix_web::{
-    body::BoxBody, dev::{ forward_ready, ConnectionInfo, Service, ServiceRequest, ServiceResponse, Transform }, get, middleware::Logger, post, web::{ self, Data }, Error, HttpRequest, HttpResponse, Responder
+use std::{
+    future::{Ready, ready},
+    string,
 };
-use bson::{ doc, oid::ObjectId };
+
+use crate::{
+    app::{AppState, Args},
+    views::{
+        context::Context,
+    },
+};
+
+use actix_session::{Session, SessionExt};
+use actix_web::{
+    Error, HttpRequest, HttpResponse, Responder,
+    body::BoxBody,
+    dev::{ConnectionInfo, Service, ServiceRequest, ServiceResponse, Transform, forward_ready},
+    get,
+    middleware::Logger,
+    post,
+    web::{self, Data},
+};
+use bson::{doc, oid::ObjectId};
 use futures::future::LocalBoxFuture;
 use oauth2::{
-    basic::BasicClient, AuthUrl, AuthorizationCode, Client, ClientId, ClientSecret, CsrfToken, RedirectUrl, RevocationErrorResponseType, Scope, TokenUrl
+    AuthUrl, AuthorizationCode, Client, ClientId, ClientSecret, CsrfToken, RedirectUrl,
+    RevocationErrorResponseType, Scope, TokenUrl, basic::BasicClient,
 };
 use oauth2::{
-    basic::{ BasicErrorResponseType, BasicTokenType },
-    EmptyExtraTokenFields,
-    StandardErrorResponse,
-    StandardRevocableToken,
-    StandardTokenIntrospectionResponse,
-    StandardTokenResponse,
-    EndpointSet,
-    EndpointNotSet,
+    EmptyExtraTokenFields, EndpointNotSet, EndpointSet, StandardErrorResponse,
+    StandardRevocableToken, StandardTokenIntrospectionResponse, StandardTokenResponse,
+    basic::{BasicErrorResponseType, BasicTokenType},
 };
 use serde::Deserialize;
 
-#[derive(Deserialize)]
-struct UserForm {
-    username: String,
-    password: String,
-}
+
 
 #[get("/login")]
-async fn login_get(app: web::Data<AppState>, session: Session) -> impl Responder {
-    HttpResponse::Ok().body("test 1")
-    // app.render_template(Login {
-    //     ctx: Context::new(&app, session),
-    // })
+async fn login() -> impl Responder {
+    HttpResponse::Ok().body("Hello world!")
 }
 
-#[get("/logincallback")]
-async fn login_get_callback(app: web::Data<AppState>, session: Session, req: HttpRequest) -> impl Responder {
-    HttpResponse::Ok().body("test 2")
-    // let query = web::Query::<std::collections::HashMap<String, String>>::from_query(req.query_string()).unwrap();
-	// let code = query.get("code").unwrap().to_string();
+// #[get("/logincallback")]
+// async fn login_get_callback(
+//     app: web::Data<AppState>,
+//     session: Session,
+//     req: HttpRequest,
+// ) -> impl Responder {
+//     HttpResponse::Ok().body("test 2")
+//     // let query = web::Query::<std::collections::HashMap<String, String>>::from_query(req.query_string()).unwrap();
+//     // let code = query.get("code").unwrap().to_string();
 
-    // let connection_info = req.connection_info().clone();
-	// let client = oauth_client(&app.args, connection_info);
+//     // let connection_info = req.connection_info().clone();
+//     // let client = oauth_client(&app.args, connection_info);
 
-	// let token_result = client
-	// 	.exchange_code(AuthorizationCode::new(code))
-	// 	.request_async(async_http_client)
-	// 	.await;
+//     // let token_result = client
+//     // 	.exchange_code(AuthorizationCode::new(code))
+//     // 	.request_async(async_http_client)
+//     // 	.await;
 
-	// match token_result {
-	// 	Ok(token) => {
-	// 		let access_token = token.access_token().secret();
-	// 		HttpResponse::Ok().body(format!("Access token: {}", access_token))
-	// 	}
-	// 	Err(err) => HttpResponse::InternalServerError().body(format!("Auth error: {:?}", err))
-	// }
-    // app.render_template(Login {
-    //     ctx: Context::new(&app, session),
-    // })
-}
+//     // match token_result {
+//     // 	Ok(token) => {
+//     // 		let access_token = token.access_token().secret();
+//     // 		HttpResponse::Ok().body(format!("Access token: {}", access_token))
+//     // 	}
+//     // 	Err(err) => HttpResponse::InternalServerError().body(format!("Auth error: {:?}", err))
+//     // }
+//     // app.render_template(Login {
+//     //     ctx: Context::new(&app, session),
+//     // })
+// }
 
 #[get("logout")]
 async fn logout(app: web::Data<AppState>, session: Session) -> impl Responder {
@@ -129,6 +136,7 @@ async fn logout(app: web::Data<AppState>, session: Session) -> impl Responder {
 
 fn oauth_client(
     args: &Args,
+    connection_info: &ConnectionInfo
 ) -> Client<
     StandardErrorResponse<BasicErrorResponseType>,
     StandardTokenResponse<EmptyExtraTokenFields, BasicTokenType>,
@@ -139,37 +147,38 @@ fn oauth_client(
     EndpointNotSet,
     EndpointNotSet,
     EndpointNotSet,
-    EndpointSet
+    EndpointSet,
 > {
-    let keycloak_realm = &args.keycloak_realm;
-    let keycloak_port = &args.keycloak_port;
-    let keycloak_secret = std::fs
-        ::read_to_string(&args.keycloak_secret_file)
-        .expect("Cannot read secret");
-    let keycloak_client_id = &args.keycloak_client_id;
 
     let scheme = connection_info.scheme();
-    let host = connection_info.host(); // e.g. "localhost:80"
-
-    // Strip port from host if present
-    let host_without_port = host.split(':').next().unwrap_or(host);
-
+    let host = connection_info.host();
     let current_root = format!("{}://{}", scheme, host);
-    let redirect_uri = format!("{}/logincallback", current_root);
+    let redirect_uri = format!("{}/login", current_root);
 
-    let keycloak_root = format!("{}://{}:{}", scheme, host_without_port, keycloak_port);
+    let keycloak_realm = &args.keycloak_realm;
+    let keycloak_port = &args.keycloak_port;
+    // let keycloak_host = &args.keycloak_host;
+    let keycloak_secret =
+        std::fs::read_to_string(&args.keycloak_secret_file).expect("Cannot read secret");
+    let keycloak_client_id = &args.keycloak_client_id;
+    let keycloak_root: String = format!("{}://{}:{}", "http", "localhost", keycloak_port);
+    
 
     let client = BasicClient::new(ClientId::new(keycloak_client_id.clone()))
         .set_client_secret(ClientSecret::new(keycloak_secret))
         .set_auth_uri(
-            AuthUrl::new(
-                format!("{}/realms/{}/protocol/openid-connect/auth", keycloak_root, keycloak_realm)
-            ).expect("Invalid Auth URL")
+            AuthUrl::new(format!(
+                "{}/realms/{}/protocol/openid-connect/auth",
+                keycloak_root, keycloak_realm
+            ))
+            .expect("Invalid Auth URL"),
         )
         .set_token_uri(
-            TokenUrl::new(
-                format!("{}/realms/{}/protocol/openid-connect/token", keycloak_root, keycloak_realm)
-            ).expect("Invalid Token URL")
+            TokenUrl::new(format!(
+                "{}/realms/{}/protocol/openid-connect/token",
+                keycloak_root, keycloak_realm
+            ))
+            .expect("Invalid Token URL"),
         )
         .set_redirect_uri(RedirectUrl::new(redirect_uri).expect("Invalid redirect URI"));
 
@@ -177,11 +186,10 @@ fn oauth_client(
 }
 
 pub struct AuthRequired;
-impl<S> Transform<S, ServiceRequest>
-    for AuthRequired
-    where
-        S: Service<ServiceRequest, Response = ServiceResponse<BoxBody>, Error = Error>,
-        S::Future: 'static
+impl<S> Transform<S, ServiceRequest> for AuthRequired
+where
+    S: Service<ServiceRequest, Response = ServiceResponse<BoxBody>, Error = Error>,
+    S::Future: 'static,
 {
     type Response = ServiceResponse<BoxBody>;
     type Error = Error;
@@ -198,11 +206,10 @@ pub struct AuthRequiredMiddleWare<S> {
     service: S,
 }
 
-impl<S> Service<ServiceRequest>
-    for AuthRequiredMiddleWare<S>
-    where
-        S: Service<ServiceRequest, Response = ServiceResponse<BoxBody>, Error = Error>,
-        S::Future: 'static
+impl<S> Service<ServiceRequest> for AuthRequiredMiddleWare<S>
+where
+    S: Service<ServiceRequest, Response = ServiceResponse<BoxBody>, Error = Error>,
+    S::Future: 'static,
 {
     type Response = ServiceResponse<BoxBody>;
     type Error = Error;
@@ -210,9 +217,12 @@ impl<S> Service<ServiceRequest>
 
     forward_ready!(service);
 
-    fn call(&self, mut req: ServiceRequest) -> Self::Future {
+    fn call(&self, req: ServiceRequest) -> Self::Future {
         let session = req.get_session();
-        let app = req.app_data::<Data<AppState>>().cloned().expect("AppState missing from request");
+        let app = req
+            .app_data::<Data<AppState>>()
+            .cloned()
+            .expect("AppState missing from request");
 
         // ✅ Session gültig → weiterleiten
         if let Ok(Some(_user_id)) = session.get::<ObjectId>("user_id") {
@@ -223,7 +233,7 @@ impl<S> Service<ServiceRequest>
             });
         }
 
-        let client = oauth_client(&app.args);
+        let client = oauth_client(&app.args, &req.connection_info());
         let (auth_url, _csrf_token) = client
             .authorize_url(CsrfToken::new_random)
             .add_scope(Scope::new("openid".to_string()))
@@ -234,15 +244,13 @@ impl<S> Service<ServiceRequest>
         let (req_head, _pl) = req.into_parts();
 
         Box::pin(async move {
-            Ok(
-                ServiceResponse::new(
-                    req_head,
-                    HttpResponse::Found()
-                        .insert_header(("Location", auth_url.to_string()))
-                        .finish()
-                        .map_into_boxed_body()
-                )
-            )
+            Ok(ServiceResponse::new(
+                req_head,
+                HttpResponse::Found()
+                    .insert_header(("Location", auth_url.to_string()))
+                    .finish()
+                    .map_into_boxed_body(),
+            ))
         })
     }
 }

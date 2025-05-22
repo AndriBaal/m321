@@ -1,5 +1,3 @@
-use std::string;
-
 use actix_web::{
     HttpResponse, HttpResponseBuilder,
     http::{StatusCode, header::HeaderValue},
@@ -10,16 +8,12 @@ use clap::{ArgGroup, Parser};
 use log::info;
 use mongodb::{Client, Database, options::ClientOptions};
 
-
 /// CLI arguments for MongoDB connection
 #[derive(Parser, Debug)]
 #[command(name = "todo_app")]
 #[command(about = "todo_app")]
 #[command(group = ArgGroup::new("mongo_password_group")
     .args(&["mongo_password", "mongo_password_file"])
-    .required(true))]
-#[command(group = ArgGroup::new("session_secret_group")
-    .args(&["session_secret", "session_secret_file"])
     .required(true))]
 #[command(group = ArgGroup::new("session_secret_group")
     .args(&["session_secret", "session_secret_file"])
@@ -43,12 +37,13 @@ pub struct Args {
     #[arg(long, env, required = true)]
     pub keycloak_port: u16,
     #[arg(long, env, required = true)]
+    pub keycloak_host: String,
+    #[arg(long, env, required = true)]
     pub keycloak_realm: String,
     #[arg(long, env, required = true)]
     pub keycloak_client_id: String,
     #[arg(long, env, required = true)]
     pub keycloak_secret_file: String,
-
 
     // App
     #[arg(long, env, default_value = "false")]
@@ -71,10 +66,9 @@ impl Args {
     }
 }
 
-
 pub struct AppState {
     pub db: Database,
-    pub args: Args
+    pub args: Args,
 }
 
 impl AppState {
@@ -107,8 +101,8 @@ impl AppState {
         uri.retain(|c| !c.is_whitespace());
 
         // Create a MongoDB client
-        let client_options = ClientOptions::parse(&uri).await?;
-        let client = Client::with_options(client_options)?;
+        let client_options = ClientOptions::parse(&uri).await.unwrap();
+        let client = Client::with_options(client_options).unwrap();
 
         let db = client.database(&args.mongo_database.clone().unwrap_or("".to_string()));
 
@@ -121,16 +115,13 @@ impl AppState {
             }
         }
 
-        Ok(Self {
-            db,
-            args,
-        })
+        Ok(Self { db, args })
     }
 
     pub fn render_template<T: askama::Template>(&self, template: T) -> HttpResponse {
         let value = template.render().unwrap();
         HttpResponseBuilder::new(StatusCode::OK)
-            .content_type(HeaderValue::from_static(T::MIME_TYPE))
+            .content_type(HeaderValue::from_static("text/html"))
             .body(value)
     }
 

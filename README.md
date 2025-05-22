@@ -1,11 +1,17 @@
 # M321
 
+## Documentation
+
+...
+
+## Video
+
 Generell:
 - Begründen warum sich für die einzelnen Technologien entschieden wurde
 - Vor / Nachteile pro Technologie
 
 ## General
-- Goal
+- Ziel
 
 ## Arduino
 
@@ -25,3 +31,5 @@ Generell:
 
 ## Docker Setup
 
+## Ausblick
+- Server Konfiguration mit https
