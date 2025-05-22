@@ -4,7 +4,7 @@
 mkdir -p ./secrets
 
 # Array of secret filenames
-secrets=("mongo_pass.txt" "session_secret.txt" "keycloak_secret.txt" "keycloak_admin_password.txt")
+secrets=("mongo_pass.txt" "session_secret.txt" "keycloak_secret.txt")
 
 # Function to generate a strong random password
 generate_password() {

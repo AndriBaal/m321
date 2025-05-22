@@ -595,7 +595,7 @@
             "enabled": true,
             "alwaysDisplayInConsole": false,
             "clientAuthenticatorType": "client-secret",
-            "secret": "XFyIHJxu4347dGt1gHy2vvf55lKm0em4",
+            "secret": "__KEYCLOAK_CLIENT_SECRET__",
             "redirectUris": [
                 "*"
             ],
