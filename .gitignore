@@ -1,4 +1,2 @@
-/target
-*.lock
 /secrets/*.txt
 .DS_Store

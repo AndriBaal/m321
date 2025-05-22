@@ -21,6 +21,9 @@ use mongodb::{Client, Database, options::ClientOptions};
 #[command(group = ArgGroup::new("session_secret_group")
     .args(&["session_secret", "session_secret_file"])
     .required(true))]
+#[command(group = ArgGroup::new("session_secret_group")
+    .args(&["session_secret", "session_secret_file"])
+    .required(true))]
 pub struct Args {
     // MongoDB
     #[arg(long, env, required = true)]

@@ -1,8 +1,8 @@
 services:
   mongodb:
     image: mongo
+    container_name: mongo
     restart: always
-    container_name: mongodb
     environment:
       MONGO_INITDB_DATABASE: m321_app
       MONGO_INITDB_ROOT_USERNAME: m321_app
@@ -30,11 +30,20 @@ services:
       - ./scripts/import_realm.sh:/opt/keycloak/import_realm.sh
     secrets:
       - keycloak_secret
-
+  mosquitto:
+    image: eclipse-mosquitto
+    container_name: mosquitto
+    restart: always
+    ports:
+      - "1883:1883" # MQTT
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
+      - mosquitto_volume/data:/mosquitto/data
+  
   m321_app:
     container_name: m321_app
     image: m321-app:latest
-    build: .
+    build: ./app
     restart: always
     environment:
       REBUILD_INDEXES: true
@@ -48,19 +57,28 @@ services:
       KEYCLOAK_PORT: 8080
       KEYCLOAK_REALM: m321
       KEYCLOAK_CLIENT_ID: actix-app
-      KEYCLOAK_SECRET_FILE: /run/secrets/keycloak_secret
     ports:
       - "80:80"
     depends_on:
       - mongodb
       - keycloak
+      - mosquitto
     secrets:
       - mongo_pass
       - session_secret
-      - keycloak_secret
-
+  nginx:
+    image: nginx
+    container_name: nginx
+    restart: always
+    ports:
+      - "8081:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - m321_app
 volumes:
   mongo_volume:
+  mosquitto_volume:
 
 secrets:
   mongo_pass:

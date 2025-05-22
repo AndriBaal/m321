@@ -129,7 +129,6 @@ async fn logout(app: web::Data<AppState>, session: Session) -> impl Responder {
 
 fn oauth_client(
     args: &Args,
-    connection_info: ConnectionInfo
 ) -> Client<
     StandardErrorResponse<BasicErrorResponseType>,
     StandardTokenResponse<EmptyExtraTokenFields, BasicTokenType>,
@@ -224,9 +223,7 @@ impl<S> Service<ServiceRequest>
             });
         }
 
-        let connection_info = req.connection_info().clone();
-        let client = oauth_client(&app.args, connection_info);
-
+        let client = oauth_client(&app.args);
         let (auth_url, _csrf_token) = client
             .authorize_url(CsrfToken::new_random)
             .add_scope(Scope::new("openid".to_string()))

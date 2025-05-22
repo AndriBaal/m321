@@ -1,5 +1,5 @@
 # Stage 1: Build
-FROM rust:1.85 AS builder
+FROM rust:1.87 AS builder
 WORKDIR /usr/src/m321_app
 COPY . .
 RUN cargo install --path .

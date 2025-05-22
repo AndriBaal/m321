@@ -1,6 +1,5 @@
 use crate::app::AppState;
 
-pub mod auth;
 pub mod context;
 pub mod device;
 

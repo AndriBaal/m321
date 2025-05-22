@@ -1,0 +1,11 @@
+# Allow any client to connect without authentication
+allow_anonymous false
+
+# Standard MQTT listener
+listener 1883
+
+# Disable persistence if you don’t need to store retained messages or sessions
+persistence false
+
+# Log to stdout (useful for Docker)
+log_dest stdout
