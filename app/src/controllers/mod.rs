@@ -34,7 +34,6 @@ pub async fn setup_server(app: AppState) -> std::io::Result<()> {
         App::new()
             .app_data(app_data.clone())
             .wrap(Logger::default())
-            .wrap(NormalizePath::new(TrailingSlash::Always))
             .wrap(
                 SessionMiddleware::builder(mongo_session_store.clone(), secret_key.clone())
                     .cookie_http_only(true)

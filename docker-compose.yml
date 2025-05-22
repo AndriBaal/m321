@@ -18,7 +18,7 @@ services:
   keycloak:
     image: quay.io/keycloak/keycloak:26.2.4
     container_name: keycloak
-    entrypoint: ["/opt/keycloak/import_realm.sh"]
+    command: start-dev --import-realm
     environment:
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
@@ -26,7 +26,7 @@ services:
     ports:
       - "${KEYCLOAK_PORT}:8080"
     volumes:
-      - ./keycloak/:/tmp/keycloak/
+      - ./keycloak:/opt/keycloak/data/import
       - ./scripts/import_realm.sh:/opt/keycloak/import_realm.sh
     secrets:
       - keycloak_secret

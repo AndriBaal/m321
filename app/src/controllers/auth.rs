@@ -37,7 +37,7 @@ use serde::Deserialize;
 
 #[get("/login")]
 async fn login() -> impl Responder {
-    HttpResponse::Ok().body("Hello world!")
+    return HttpResponse::Ok().body("Hello world!");
 }
 
 // #[get("/logincallback")]
