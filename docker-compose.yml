@@ -18,18 +18,20 @@ services:
   keycloak:
     image: quay.io/keycloak/keycloak:26.2.4
     container_name: keycloak
-    command: start-dev --import-realm
+    entrypoint: ["/opt/keycloak/start_keycloak.sh"]
     environment:
-      KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_BOOTSTRAP_ADMIN_USERNAME : admin
+      # KC_BOOTSTRAP_ADMIN_PASSWORD_FILE: /run/secrets/keycloak_admin - gibt es so nicht -> wird in start_keycloak.sh gesetzt
       KC_DB: dev-mem
     ports:
       - "${KEYCLOAK_PORT}:8080"
     volumes:
-      - ./keycloak:/opt/keycloak/data/import
-      - ./scripts/import_realm.sh:/opt/keycloak/import_realm.sh
+      - ./keycloak:/tmp/keycloak/
+      - ./scripts/start_keycloak.sh:/opt/keycloak/start_keycloak.sh
     secrets:
       - keycloak_secret
+      - keycloak_admin
+      - keycloak_test_user
 
   mosquitto:
     image: eclipse-mosquitto
@@ -94,5 +96,9 @@ secrets:
     file: ./secrets/session_secret.txt
   keycloak_secret:
     file: ./secrets/keycloak_secret.txt
+  keycloak_admin:
+    file: ./secrets/keycloak_admin.txt
+  keycloak_test_user:
+    file: ./secrets/keycloak_test_user.txt
   mosquitto_user:
     file: ./secrets/mosquitto_user.txt

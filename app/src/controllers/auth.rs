@@ -158,8 +158,8 @@ fn oauth_client(
     let keycloak_realm = &args.keycloak_realm;
     let keycloak_port = &args.keycloak_port;
     // let keycloak_host = &args.keycloak_host;
-    let keycloak_secret =
-        std::fs::read_to_string(&args.keycloak_secret_file).expect("Cannot read secret");
+
+    let keycloak_secret = std::fs::read_to_string(&args.keycloak_secret_file).expect("Cannot read secret");
     let keycloak_client_id = &args.keycloak_client_id;
     let keycloak_root: String = format!("{}://{}:{}", "http", "localhost", keycloak_port);
     
