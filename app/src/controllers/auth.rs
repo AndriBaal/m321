@@ -4,10 +4,8 @@ use std::{
 };
 
 use crate::{
-    app::{AppState, Args},
-    views::{
-        context::Context,
-    },
+    app::{self, AppState, Args},
+    views::context::Context,
 };
 
 use actix_session::{Session, SessionExt};
@@ -32,7 +30,6 @@ use oauth2::{
 };
 use serde::Deserialize;
 
-
 #[get("/login")]
 async fn login(
     app: web::Data<AppState>,
@@ -51,17 +48,17 @@ async fn login(
         return HttpResponse::BadRequest().body("Missing code");
     }
 
-    let code = code.unwrap();
+    let code = AuthorizationCode::new(code.unwrap());
     let connection_info = req.connection_info().clone();
     let client = oauth_client(&app.args, &connection_info);
 
-    let http_client = reqwest::Client::builder()
+    let http_client = &reqwest::Client::builder()
         .redirect(reqwest::redirect::Policy::none())
         .build().unwrap();
 
     let token_result = client
-        .exchange_code(AuthorizationCode::new(code))
-        .request_async(&http_client)
+        .exchange_code(code)
+        .request_async(http_client)
         .await;
 
     let token = match token_result {
@@ -76,6 +73,8 @@ async fn login(
         "http://localhost:{}/realms/{}/protocol/openid-connect/userinfo",
         app.args.keycloak_port, app.args.keycloak_realm
     );
+
+    log::info!("secret: {}", token.access_token().secret());
 
     let client = reqwest::Client::new();
     let res = client
@@ -216,8 +215,10 @@ fn oauth_client(
 
     let scheme = connection_info.scheme();
     let host = connection_info.host();
-    let current_root = format!("{}://{}", scheme, host);
+    let current_root = format!("{}://{}:{}", scheme, host, args.nginx_port);
     let redirect_uri = format!("{}/login", current_root);
+
+    log::info!("redirect: {}", redirect_uri);
 
     let keycloak_realm = &args.keycloak_realm;
     let keycloak_port = &args.keycloak_port;

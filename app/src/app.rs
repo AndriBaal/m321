@@ -54,6 +54,8 @@ pub struct Args {
     pub rebuild_indexes: bool,
     #[arg(long, env, default_value = "80")]
     pub port: u16,
+    #[arg(long, env, required = true)]
+    pub nginx_port: u16,
     #[arg(long, env, value_parser = Self::validate_length)]
     pub session_secret: Option<String>,
     #[arg(long, env)]

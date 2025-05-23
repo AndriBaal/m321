@@ -63,6 +63,7 @@ services:
       KEYCLOAK_PORT: ${KEYCLOAK_PORT}
       KEYCLOAK_REALM: m321
       KEYCLOAK_CLIENT_ID: actix-app
+      NGINX_PORT: ${NGINX_PORT}
     ports:
       - "80" # only visible to other containers (nginx)
     depends_on:
