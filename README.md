@@ -28,19 +28,27 @@ Generell:
 
 ## MongoDB
 - Persistente Datenspeicherung
-- Speicherung von Daten
+- Speicherung von Arduino Daten
+- Speicherung von Sessions (Automatisches Löschen via Index)
 - Auswerten von Durcchscnitt letzte 24 Stunden
 
 ## Mosquitto
 - Mqtt Broker
 - Passwortschützt
 - Kommunikation zwischen Arduino und Web APP
+- Datenübertragung über JSON (Sinnvoll weil MongoDB auch JSON verwendet)
 
 ## Nginx
-
+- Middleman
+- Eingebaut für zukünftige Erweiterungen wie:
+    - Load Balancing
+    - HTTPS
+    - Sicherheit (wie z.B. DoS Attacken)
+    - Cache
 
 ## Keycloak
 - Authentication
+- Benutzermanagement
 
 ## Systemarchitektur
 - Grafik der Archtiektur
@@ -52,4 +60,4 @@ Generell:
 ## Ausblick
 - Server Konfiguration mit https
 - Service für Monitoring
-- Anschlissen mehrerer Arduinos
+- Anschliessen mehrerer Arduinos

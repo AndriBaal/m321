@@ -4,7 +4,7 @@ use super::context::Context;
 
 
 #[derive(Template)]
-#[template(path = "device.html")]
-pub struct DeviceView {
+#[template(path = "index.html")]
+pub struct IndexView {
     pub ctx: Context,
 }

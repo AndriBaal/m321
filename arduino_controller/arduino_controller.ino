@@ -4,55 +4,57 @@
 
 #define DHTPIN 4
 #define DHTTYPE DHT11
-DHT11 dht11(DHTPIN);
 
 // WiFi credentials
-const char* ssid = "your-ssid";
-const char* password = "your-wifi-password";
+const char* ssid = "crab";
+const char* password = "crabbycrab";
 
 // MQTT Broker
-const char* mqtt_server = "broker-ip-or-hostname";
+const char* mqtt_server = "MacBook-Pro-von-Andri";
 const int mqtt_port = 1883;
-const char* mqtt_user = "mqtt-username";
+const char* mqtt_user = "app";
 const char* mqtt_pass = "mqtt-password";
+const char* name = "arduino01";
 
-WiFiClient espClient;
-PubSubClient client(espClient);
+WiFiClient wifiClient;
+PubSubClient mqttClient(wifiClient);
+DHT11 dht11(DHTPIN);
 
-void setup_wifi() {
+void connect_wifi() {
 	WiFi.begin(ssid, password);
 	while (WiFi.status() != WL_CONNECTED) {
 		delay(500);
 	}
 }
 
-void reconnect() {
-	while (!client.connected()) {
-		if (client.connect("arduinoClient", mqtt_user, mqtt_pass)) {
+void connect_mqtt() {
+	while (!mqttClient.connected()) {
+		if (mqttClient.connect(name, mqtt_user, mqtt_pass)) {
 			// Connected
 		} else {
-			delay(5000);
+			delay(500);
 		}
 	}
 }
 
 void setup() {
-	Serial.begin(9600);
-	setup_wifi();
-	client.setServer(mqtt_server, mqtt_port);
+	connect_wifi();
+	mqttClient.setServer(mqtt_server, mqtt_port);
 }
 
 void loop() {
-	if (!client.connected()) {
-		reconnect();
+	if (WiFi.status() != WL_CONNECTED) {
+		connect_wifi();
 	}
-	client.loop();
+	if (!mqttClient.connected()) {
+		connect_mqtt();
+	}
+	mqttClient.loop();
 
-	float temp = dht11.readTemperature();
-	if (!isnan(temp)) {
-		char tempStr[8];
-		dtostrf(temp, 1, 2, tempStr);
-		client.publish("sensor/temperature", tempStr);
-	}
+	int temp = dht11.readTemperature();
+	int hum = dht11.readHumidity();
+	char payload[128];
+	snprintf(payload, sizeof(payload), "{\"client_name\":\"%s\",\"temperature\":%d,\"humidity\":%d}", name, temp, hum);
+	mqttClient.publish("arduino/data", [temp, hum]);
 	delay(5000);
 }

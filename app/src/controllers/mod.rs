@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use crate::app::{AppState, Args};
 
 use actix_files::Files;
@@ -12,7 +10,7 @@ use actix_web::{
 };
 
 pub mod auth;
-pub mod device;
+pub mod index;
 
 pub async fn setup_server(app: AppState) -> std::io::Result<()> {
     let mongo_session_store: crate::models::session::SessionManager =
@@ -52,7 +50,7 @@ pub async fn setup_server(app: AppState) -> std::io::Result<()> {
                     .build(),
             )
             .service(Files::new("/static", "./static").show_files_listing())
-            .service(device::index)
+            .service(index::index)
             .service(auth::login)
     })
     .bind(("0.0.0.0", port))?

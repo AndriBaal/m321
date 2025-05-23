@@ -1,24 +1,22 @@
 use rumqttc::{MqttOptions, AsyncClient, QoS};
-use std::{sync::Arc, time::Duration};
-
 use crate::app::AppState;
 
 pub async fn mqtt_client(app: AppState) {
-	let mut mqttoptions = MqttOptions::new("rust-client", "localhost", 1883);
-	mqttoptions.set_keep_alive(Duration::from_secs(10));
-	mqttoptions.set_credentials("mqtt-username", "mqtt-password");
+	// let mut mqttoptions = MqttOptions::new(env!("CARGO_PKG_NAME"), &app.args.mosquitto_host, app.args.mosquitto_port);
+	// mqttoptions.set_credentials(&app.args.mosquitto_user, &app.args.mosquitto_password);
 
-	let (client, mut eventloop) = AsyncClient::new(mqttoptions, 10);
+	// let (client, mut eventloop) = AsyncClient::new(mqttoptions, 10);
 
-	client.subscribe("sensor/temperature", QoS::AtMostOnce).await.unwrap();
+	// client.subscribe("sensor/temperature", QoS::AtMostOnce).await.unwrap();
 
-	loop {
-		let event = eventloop.poll().await;
-		match event {
-			Ok(rumqttc::Event::Incoming(rumqttc::Packet::Publish(p))) => {
-				println!("Received: {:?}", String::from_utf8_lossy(&p.payload));
-			}
-			_ => {}
-		}
-	}
+	// loop {
+	// 	let event = eventloop.poll().await;
+	// 	match event {
+	// 		Ok(rumqttc::Event::Incoming(rumqttc::Packet::Publish(p))) => {
+	// 			let json: serde_json::Value = serde_json::from_slice(&p.payload).unwrap();
+	// 			println!("Received: {:?}", json);
+	// 		}
+	// 		_ => {}
+	// 	}
+	// }
 }

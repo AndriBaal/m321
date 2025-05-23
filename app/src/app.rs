@@ -49,6 +49,16 @@ pub struct Args {
     #[arg(long, env, required = true)]
     pub keycloak_secret_file: String,
 
+    // Mosquitto
+    #[arg(long, env, required = false)]
+    pub mosquitto_host: String,
+    #[arg(long, env, required = false)]
+    pub mosquitto_user: String,
+    #[arg(long, env, required = false)]
+    pub mosquitto_password_file: String,
+    #[arg(long, env, required = false)]
+    pub mosquitto_port: u16,
+
     // App
     #[arg(long, env, default_value = "false")]
     pub rebuild_indexes: bool,
