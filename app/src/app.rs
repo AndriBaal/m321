@@ -9,6 +9,7 @@ use bson::{doc, oid::ObjectId};
 use clap::{ArgGroup, Parser};
 use log::info;
 use mongodb::{Client, Database, options::ClientOptions};
+use uuid::Uuid;
 
 use crate::mqtt_client;
 
@@ -39,15 +40,23 @@ pub struct Args {
 
     // Keycloak
     #[arg(long, env, required = true)]
-    pub keycloak_port: u16,
-    #[arg(long, env, required = true)]
-    pub keycloak_host: String,
-    #[arg(long, env, required = true)]
     pub keycloak_realm: String,
     #[arg(long, env, required = true)]
     pub keycloak_client_id: String,
     #[arg(long, env, required = true)]
     pub keycloak_secret_file: String,
+    #[arg(long, env, required = true)]
+    pub keycloak_admin_secret_file: String,
+
+    #[arg(long, env, required = true)]
+    pub keycloak_external_port: u16,
+    #[arg(long, env, required = true)]
+    pub keycloak_external_host: String,
+
+    #[arg(long, env, required = true)]
+    pub keycloak_internal_port: u16,
+    #[arg(long, env, required = true)]
+    pub keycloak_internal_host: String,
 
     // App
     #[arg(long, env, default_value = "false")]
@@ -146,11 +155,11 @@ impl AppState {
             .finish()
     }
 
-    pub fn try_user_id(&self, session: &actix_session::Session) -> Option<ObjectId> {
-        session.get::<ObjectId>("user_id").unwrap()
+    pub fn try_user_id(&self, session: &actix_session::Session) -> Option<Uuid> {
+        session.get::<Uuid>("user_id").unwrap()
     }
 
-    pub fn user_id(&self, session: &actix_session::Session) -> ObjectId {
+    pub fn user_id(&self, session: &actix_session::Session) -> Uuid {
         self.try_user_id(session).unwrap()
     }
 }
