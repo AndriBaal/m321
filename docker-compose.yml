@@ -58,9 +58,17 @@ services:
       MONGO_USERNAME: m321_app
       MONGO_PASSWORD_FILE: /run/secrets/mongo_pass
       SESSION_SECRET_FILE: /run/secrets/session_secret
+      KEYCLOAK_ADMIN_SECRET_FILE: /run/secrets/keycloak_admin
       KEYCLOAK_SECRET_FILE: /run/secrets/keycloak_secret
-      KEYCLOAK_HOST: keycloak
-      KEYCLOAK_PORT: ${KEYCLOAK_PORT}
+
+      # extern/Browser:
+      KEYCLOAK_EXTERNAL_HOST: "localhost"
+      KEYCLOAK_EXTERNAL_PORT: ${KEYCLOAK_PORT}
+
+      # intern/Container:
+      KEYCLOAK_INTERNAL_HOST: "keycloak" # container_name
+      KEYCLOAK_INTERNAL_PORT: "8080"
+      
       KEYCLOAK_REALM: m321
       KEYCLOAK_CLIENT_ID: actix-app
       NGINX_PORT: ${NGINX_PORT}
@@ -74,6 +82,7 @@ services:
       - mongo_pass
       - session_secret
       - keycloak_secret
+      - keycloak_admin
 
   nginx:
     image: nginx

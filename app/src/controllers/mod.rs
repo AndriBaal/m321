@@ -52,6 +52,7 @@ pub async fn setup_server(app: AppState) -> std::io::Result<()> {
             .service(Files::new("/static", "./static").show_files_listing())
             .service(index::index)
             .service(auth::login)
+            .service(auth::logout)
     })
     .bind(("0.0.0.0", port))?
     .run()

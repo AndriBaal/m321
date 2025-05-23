@@ -28,7 +28,11 @@
 			<div></div>
 			<div>
 				<h2>
+				{% if ctx.user_id.is_some() %}
+					<a class="text-decoration-none text-reset" href="/">App (User: {{ ctx.user_id.unwrap() }})</a>
+				{% else %}
 					<a class="text-decoration-none text-reset" href="/">App</a>
+				{% endif %}
 				</h2>
 			</div>
 			<div>
