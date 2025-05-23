@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use actix_web::{
     HttpResponse, HttpResponseBuilder,
     http::{StatusCode, header::HeaderValue},
@@ -7,6 +9,8 @@ use bson::{doc, oid::ObjectId};
 use clap::{ArgGroup, Parser};
 use log::info;
 use mongodb::{Client, Database, options::ClientOptions};
+
+use crate::mqtt_client;
 
 /// CLI arguments for MongoDB connection
 #[derive(Parser, Debug)]
@@ -66,13 +70,14 @@ impl Args {
     }
 }
 
+#[derive(Clone)]
 pub struct AppState {
     pub db: Database,
-    pub args: Args,
+    pub args: Arc<Args>,
 }
 
 impl AppState {
-    pub async fn new() -> Result<Self> {
+    pub async fn new() -> Self {
         env_logger::init();
 
         let args = Args::parse();
@@ -115,7 +120,15 @@ impl AppState {
             }
         }
 
-        Ok(Self { db, args })
+        let app = Self {
+            db,
+            args: Arc::new(args),
+        };
+        let app_clone = app.clone();
+        actix_web::rt::spawn(async move {
+            mqtt_client::mqtt_client(app_clone).await;
+        });
+        return app;
     }
 
     pub fn render_template<T: askama::Template>(&self, template: T) -> HttpResponse {

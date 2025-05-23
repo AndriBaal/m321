@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::app::{AppState, Args};
 
 use actix_files::Files;
@@ -5,7 +7,7 @@ use actix_session::{SessionMiddleware, config::PersistentSession};
 use actix_web::{
     App, HttpServer,
     cookie::{Key, time::Duration},
-    middleware::{Logger, NormalizePath, TrailingSlash},
+    middleware::Logger,
     web,
 };
 

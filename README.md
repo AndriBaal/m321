@@ -15,11 +15,14 @@ Generell:
 - Insgesamt 6 Services 
 
 ## Arduino
+- Microcontroller
 - DHT11 Temparatur sensor
 - ESP 8266
+- Wifi
 - Schaltungzeigen
 
-## Web APP
+## Actix App
+- Web App
 - Rust
 - Actix
 
@@ -29,6 +32,7 @@ Generell:
 - Auswerten von Durcchscnitt letzte 24 Stunden
 
 ## Mosquitto
+- Mqtt Broker
 - Passwortschützt
 - Kommunikation zwischen Arduino und Web APP
 
@@ -36,7 +40,7 @@ Generell:
 
 
 ## Keycloak
-
+- Authentication
 
 ## Systemarchitektur
 - Grafik der Archtiektur
