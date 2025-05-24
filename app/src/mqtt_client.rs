@@ -36,17 +36,18 @@ pub async fn mqtt_client(app: AppState) {
             Ok(rumqttc::Event::Incoming(rumqttc::Packet::Publish(p))) => {
                 println!("Received Data: {}", String::from_utf8_lossy(&p.payload));
                 let data: ArduinoData = serde_json::from_slice(&p.payload).unwrap();
-                if data.humidity >= 0 && data.humidity <= 100 {}
-                app.entries
-                    .insert_one(TemperatureLog {
-                        id: None,
-                        client_name: data.client_name,
-                        temperature: data.temperature,
-                        humidity: data.humidity,
-                        time: DateTime::now(),
-                    })
-                    .await
-                    .unwrap();
+                if data.humidity >= 0 && data.humidity <= 100 {
+                    app.entries
+                        .insert_one(TemperatureLog {
+                            id: None,
+                            client_name: data.client_name,
+                            temperature: data.temperature,
+                            humidity: data.humidity,
+                            time: DateTime::now(),
+                        })
+                        .await
+                        .unwrap();
+                }
             }
             _ => {}
         }
