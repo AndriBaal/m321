@@ -21,17 +21,16 @@ services:
     entrypoint: ["/opt/keycloak/start_keycloak.sh"]
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME : admin
-      # KC_BOOTSTRAP_ADMIN_PASSWORD_FILE: /run/secrets/keycloak_admin - gibt es so nicht -> wird in start_keycloak.sh gesetzt
       KC_DB: dev-mem
     ports:
       - "${KEYCLOAK_PORT}:8080"
     volumes:
-      - ./keycloak:/tmp/keycloak/
-      - ./scripts/start_keycloak.sh:/opt/keycloak/start_keycloak.sh
+      - ./keycloak/realm:/tmp/keycloak/
+      - ./keycloak/start_keycloak.sh:/opt/keycloak/start_keycloak.sh
     secrets:
       - keycloak_secret
-      - keycloak_admin
-      - keycloak_test_user
+      - keycloak_admin_pass
+      - keycloak_user_pass
 
   mosquitto:
     image: eclipse-mosquitto
@@ -41,7 +40,6 @@ services:
       - "1883:1883" # MQTT
     volumes:
       - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
-      - mosquitto_volume:/mosquitto/data
     secrets:
       - mosquitto_user
 
@@ -55,22 +53,26 @@ services:
       MONGO_HOST: mongodb
       MONGO_PORT: ${MONGO_PORT}
       MONGO_DATABASE: m321_app
-      MONGO_USERNAME: m321_app
+      MONGO_USER: m321_app
       MONGO_PASSWORD_FILE: /run/secrets/mongo_pass
       SESSION_SECRET_FILE: /run/secrets/session_secret
-      KEYCLOAK_ADMIN_SECRET_FILE: /run/secrets/keycloak_admin
-      KEYCLOAK_SECRET_FILE: /run/secrets/keycloak_secret
 
       # extern/Browser:
       KEYCLOAK_EXTERNAL_HOST: "localhost"
       KEYCLOAK_EXTERNAL_PORT: ${KEYCLOAK_PORT}
-
       # intern/Container:
       KEYCLOAK_INTERNAL_HOST: "keycloak" # container_name
       KEYCLOAK_INTERNAL_PORT: "8080"
-      
+
       KEYCLOAK_REALM: m321
       KEYCLOAK_CLIENT_ID: actix-app
+      KEYCLOAK_SECRET_FILE: /run/secrets/keycloak_secret
+
+      MOSQUITTO_HOST: mosquitto
+      MOSQUITTO_PORT: 1883
+      MOSQUITTO_USER: app
+      MOSQUITTO_PASSWORD_FILE: /run/secrets/mosquitto_pass
+
       NGINX_PORT: ${NGINX_PORT}
     ports:
       - "80" # only visible to other containers (nginx)
@@ -80,9 +82,9 @@ services:
       - mosquitto
     secrets:
       - mongo_pass
+      - mosquitto_pass
       - session_secret
       - keycloak_secret
-      - keycloak_admin
 
   nginx:
     image: nginx
@@ -97,7 +99,6 @@ services:
 
 volumes:
   mongo_volume:
-  mosquitto_volume:
 
 secrets:
   mongo_pass:
@@ -106,9 +107,11 @@ secrets:
     file: ./secrets/session_secret.txt
   keycloak_secret:
     file: ./secrets/keycloak_secret.txt
-  keycloak_admin:
-    file: ./secrets/keycloak_admin.txt
-  keycloak_test_user:
-    file: ./secrets/keycloak_test_user.txt
+  keycloak_admin_pass:
+    file: ./secrets/keycloak_admin_pass.txt
+  keycloak_user_pass:
+    file: ./secrets/keycloak_user_pass.txt
   mosquitto_user:
     file: ./secrets/mosquitto_user.txt
+  mosquitto_pass:
+    file: ./secrets/mosquitto_pass.txt

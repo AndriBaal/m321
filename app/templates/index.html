@@ -1,7 +1,52 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<div class="card shadow p-4">
-    <h2 class="text-center mb-3">Arduino Control</h2>
+
+<div class="row mb-4">
+    <div class="col text-center">
+        <h3>Temperature & Humidity Overview</h3>
+    </div>
 </div>
+<div class="row mb-3">
+    <div class="col-md-6 text-center">
+        <div class="card shadow-sm">
+            <div class="card-body p-0">
+                <h5 class="card-title">Average Temperature (last hour)</h5>
+                <p class="card-text display-6">{{ "{:.2}" | format(avg_temperature) }} °C</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 text-center">
+        <div class="card shadow-sm">
+            <div class="card-body p-0">
+                <h5 class="card-title">Average Humidity (last hour)</h5>
+                <p class="card-text display-6">{{ "{:.2}" | format(avg_temperature) }} %</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-bordered table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>Client</th>
+                <th>Temperature (°C)</th>
+                <th>Humidity (%)</th>
+                <th>Time</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in entries %}
+            <tr>
+                <td>{{ entry.client_name }}</td>
+                <td>{{ entry.temperature }}</td>
+                <td>{{ entry.humidity }}</td>
+                <td>{{ entry.time }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
 {% endblock %}

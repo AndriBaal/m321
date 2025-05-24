@@ -5,13 +5,13 @@ use actix_web::{
     http::{StatusCode, header::HeaderValue},
 };
 use anyhow::Result;
-use bson::{doc, oid::ObjectId};
+use bson::doc;
 use clap::{ArgGroup, Parser};
 use log::info;
-use mongodb::{Client, Database, options::ClientOptions};
+use mongodb::{Client, Collection, Database, options::ClientOptions};
 use uuid::Uuid;
 
-use crate::mqtt_client;
+use crate::{models::temperature_log::TemperatureLog, mqtt_client};
 
 /// CLI arguments for MongoDB connection
 #[derive(Parser, Debug)]
@@ -26,7 +26,7 @@ use crate::mqtt_client;
 pub struct Args {
     // MongoDB
     #[arg(long, env, required = true)]
-    mongo_username: String,
+    mongo_user: String,
     #[arg(long, env)]
     mongo_password: Option<String>,
     #[arg(long, env)]
@@ -45,8 +45,6 @@ pub struct Args {
     pub keycloak_client_id: String,
     #[arg(long, env, required = true)]
     pub keycloak_secret_file: String,
-    #[arg(long, env, required = true)]
-    pub keycloak_admin_secret_file: String,
 
     #[arg(long, env, required = true)]
     pub keycloak_external_port: u16,
@@ -59,13 +57,13 @@ pub struct Args {
     pub keycloak_internal_host: String,
 
     // Mosquitto
-    #[arg(long, env, required = false)]
+    #[arg(long, env, required = true)]
     pub mosquitto_host: String,
-    #[arg(long, env, required = false)]
+    #[arg(long, env, required = true)]
     pub mosquitto_user: String,
-    #[arg(long, env, required = false)]
+    #[arg(long, env, required = true)]
     pub mosquitto_password_file: String,
-    #[arg(long, env, required = false)]
+    #[arg(long, env, required = true)]
     pub mosquitto_port: u16,
 
     // App
@@ -94,6 +92,7 @@ impl Args {
 #[derive(Clone)]
 pub struct AppState {
     pub db: Database,
+    pub entries: Collection<TemperatureLog>,
     pub args: Arc<Args>,
 }
 
@@ -105,7 +104,7 @@ impl AppState {
 
         log::info!("{args:?}");
 
-        let mongo_username = &args.mongo_username;
+        let mongo_user = &args.mongo_user;
         let mongo_password = if let Some(mongo_password) = args.mongo_password.clone() {
             mongo_password
         } else if let Some(password_file) = &args.mongo_password_file {
@@ -117,7 +116,7 @@ impl AppState {
         let mongo_port = &args.mongo_port;
         let mut uri = format!(
             "mongodb://{}:{}@{}:{}",
-            mongo_username, mongo_password, mongo_host, mongo_port
+            mongo_user, mongo_password, mongo_host, mongo_port
         );
 
         if std::fs::exists(&args.keycloak_secret_file).is_err() {
@@ -142,8 +141,9 @@ impl AppState {
         }
 
         let app = Self {
-            db,
+            entries: db.collection("temperature_log"),
             args: Arc::new(args),
+            db,
         };
         let app_clone = app.clone();
         actix_web::rt::spawn(async move {

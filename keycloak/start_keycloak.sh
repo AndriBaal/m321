@@ -1,10 +1,10 @@
 #!/bin/bash
 
 echo "Exporting temp-admin password..."
-export KC_BOOTSTRAP_ADMIN_PASSWORD=$(cat /run/secrets/keycloak_admin)
+export KC_BOOTSTRAP_ADMIN_PASSWORD=$(cat /run/secrets/keycloak_admin_pass)
 
 REAL_SECRET=$(cat /run/secrets/keycloak_secret)
-TEST_USER_PW=$(cat /run/secrets/keycloak_test_user)
+TEST_USER_PW=$(cat /run/secrets/keycloak_user_pass)
 REALM_SOURCE="/tmp/keycloak/m321-realm.json"
 REALM_TARGET_FOLDER="/opt/keycloak/data/import"
 REALM_TARGET="${REALM_TARGET_FOLDER}/m321-realm.json"
