@@ -120,70 +120,70 @@ async fn logout(app: web::Data<AppState>, session: Session, _req: HttpRequest) -
     // TODO: nicht fertig
 
     // 2) Build a client‐credentials token request
-    let host = format!(
-        "http://{}:{}",
-        app.args.keycloak_external_host, app.args.keycloak_external_port,
-    );
-    let token_url = format!(
-        "{}/realms/{}/protocol/openid-connect/token",
-        host, app.args.keycloak_realm
-    );
+    // let host = format!(
+    //     "http://{}:{}",
+    //     app.args.keycloak_external_host, app.args.keycloak_external_port,
+    // );
+    // let token_url = format!(
+    //     "{}/realms/{}/protocol/openid-connect/token",
+    //     host, app.args.keycloak_realm
+    // );
 
-    let client_secret = fs::read_to_string(&app.args.keycloak_secret_file)
-        .expect("Cannot read client secret file")
-        .trim()
-        .to_string();
+    // let client_secret = fs::read_to_string(&app.args.keycloak_secret_file)
+    //     .expect("Cannot read client secret file")
+    //     .trim()
+    //     .to_string();
 
-    let http = reqwest::Client::new();
-    let token_res = http
-        .post(&token_url)
-        .form(&[
-            ("grant_type", "client_credentials"),
-            ("client_id", &app.args.keycloak_client_id),
-            ("client_secret", &client_secret),
-        ])
-        .send()
-        .await
-        .map_err(|e| {
-            log::error!("Failed to fetch admin token: {}", e);
-            HttpResponse::InternalServerError().body("Token request failed")
-        })
-        .unwrap();
+    // let http = reqwest::Client::new();
+    // let token_res = http
+    //     .post(&token_url)
+    //     .form(&[
+    //         ("grant_type", "client_credentials"),
+    //         ("client_id", &app.args.keycloak_client_id),
+    //         ("client_secret", &client_secret),
+    //     ])
+    //     .send()
+    //     .await
+    //     .map_err(|e| {
+    //         log::error!("Failed to fetch admin token: {}", e);
+    //         HttpResponse::InternalServerError().body("Token request failed")
+    //     })
+    //     .unwrap();
 
-    if !token_res.status().is_success() {
-        log::error!("Token endpoint returned {}", token_res.status());
-        return HttpResponse::InternalServerError().body("Token request error");
-    }
+    // if !token_res.status().is_success() {
+    //     log::error!("Token endpoint returned {}", token_res.status());
+    //     return HttpResponse::InternalServerError().body("Token request error");
+    // }
 
-    let tok: TokenResponseBody = token_res
-        .json()
-        .await
-        .map_err(|e| {
-            log::error!("Failed to parse token JSON: {}", e);
-            HttpResponse::InternalServerError().body("Bad token JSON")
-        })
-        .unwrap();
+    // let tok: TokenResponseBody = token_res
+    //     .json()
+    //     .await
+    //     .map_err(|e| {
+    //         log::error!("Failed to parse token JSON: {}", e);
+    //         HttpResponse::InternalServerError().body("Bad token JSON")
+    //     })
+    //     .unwrap();
 
-    // 3) Call the Admin logout endpoint
-    let logout_url = format!(
-        "{}/admin/realms/{}/users/{}/logout",
-        host, app.args.keycloak_realm, user_id
-    );
-    let logout_res = http
-        .post(&logout_url)
-        .bearer_auth(&tok.access_token)
-        .send()
-        .await
-        .map_err(|e| {
-            log::error!("Logout request error: {}", e);
-            HttpResponse::InternalServerError().body("Logout request failed")
-        })
-        .unwrap();
+    // // 3) Call the Admin logout endpoint
+    // let logout_url = format!(
+    //     "{}/admin/realms/{}/users/{}/logout",
+    //     host, app.args.keycloak_realm, user_id
+    // );
+    // let logout_res = http
+    //     .post(&logout_url)
+    //     .bearer_auth(&tok.access_token)
+    //     .send()
+    //     .await
+    //     .map_err(|e| {
+    //         log::error!("Logout request error: {}", e);
+    //         HttpResponse::InternalServerError().body("Logout request failed")
+    //     })
+    //     .unwrap();
 
-    if !logout_res.status().is_success() {
-        log::error!("Admin logout returned {}", logout_res.status());
-        return HttpResponse::InternalServerError().body("Admin logout error");
-    }
+    // if !logout_res.status().is_success() {
+    //     log::error!("Admin logout returned {}", logout_res.status());
+    //     return HttpResponse::InternalServerError().body("Admin logout error");
+    // }
 
     // 4) Finally, redirect the browser home
     return app.redirect("/");
