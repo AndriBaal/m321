@@ -1,10 +1,10 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#define WIFI_SSID "<INSERT_HERE>"
-#define WIFI_PASSWORD "<INSERT_HERE>"
-#define MQTT_SERVER "<INSERT_HERE>"
-#define MQTT_PASSWORD "<INSERT_HERE>"
+#define WIFI_SSID "crab"
+#define WIFI_PASSWORD "crabbycrab"
+#define MQTT_SERVER "192.168.120.74"
+#define MQTT_PASSWORD "86tpsAFoP3O6GxsEZRfZJHJw4ZPdY4S3o6luhMhMXSiNDuISwcwzK5YRwMFMCw8M"
 #define MQTT_USER "app"
 #define MQTT_PORT 1883
 #define DHTPIN D6

@@ -27,7 +27,7 @@ done
 # Generate Mosquitto password hash using OpenSSL (SHA-512 crypt)
 mosquitto_user="app"
 
-if [[ ! -f "$mosquitto_user_file" ]]; then
+if [[ ! -f "./secrets/mosquitto_user.txt" ]]; then
 	mosquitto_pass=$(generate_password)
 
 	# Generate a random 16-character salt from given character set
